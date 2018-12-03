@@ -1,6 +1,7 @@
 import numpy as np
 from atomicMass import atomic_mass
 from collections import Counter
+import rmsd
 """ Classes useful in parsing pdb files down to individual components """
 
 class atomClass: 
@@ -119,8 +120,8 @@ class chainClass:
 		totalMass = totalMass + elementMass
 	return totalMass
 
-
-	def getAtomPosArray(self):
+	#TODO decide what to store as an object
+	def getPosArray(self):
 	""" Returns numpy array of positions of atoms within object 
 			return ex: 
 			np.array([[46.900, -34.882, 16.524],
@@ -137,4 +138,10 @@ class chainClass:
 
 	def getConnects(self):
 		return connectList
+
+	def chainRMSD(self, chain_):
+	""" Calculates RMSD using https://github.com/charnley/rmsd
+		param chain_ : chain being compared
+	"""
+		return(rmsd.rmsd(self.getPosArray(), chain_.getPosArray()))
 
