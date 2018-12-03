@@ -5,7 +5,7 @@ import rmsd
 from itertools import groupby, chain
 import pdb
 """ Classes useful in parsing pdb files down to individual components """
-
+#big TODO make tests
 class atomClass: 
 	""" Class used to store information about individual atoms 
 		Constructor values
@@ -68,25 +68,29 @@ class connectClass:
 	def __init__(self, atomDict):
 		"""Dictionary of atomClass objects"""
 		self.atomDict = atomDict
+		self.arr = None
 
 	def getDict(self):
 		return self.atomDict
 
 
-	def getLocationArray(self):
+	def getConnectPos(self):
 		""" Returns numpy array of positions of atoms within object 
 			return ex: 
 			np.array([[46.900, -34.882, 16.524],
 					  [47.305, -39.387,  13.282],
 					  [49.426, -32.298, 10.930]])  
 		"""
-		arr = np.array([])
-		for key, atom in enumerate(self.atomDict):
-			arr.append(atom.getAtomLoc())
-		return arr
+		if self.arr is None:
+			posList = [];
+			for key in self.atomDict:
+				posList.append((self.atomDict[key].getAtomLoc()))
+			self.arr = np.vstack(posList)
+		return self.arr
+
 
 	def connectRMSD(self, connect_):
-		return(rmsd.rmsd(self.getPosArray(), connect_.getPosArray()))
+		return(rmsd.rmsd(self.getConnectPos(), connect_.getConnectPos()))
 
 class chainClass: 
 	""" Chain stores atomDict and connectList of elements between END markers in file
@@ -100,7 +104,6 @@ class chainClass:
 		self.arr = None
 
 
-	#TODO move down to actual parser class once I start tackling files w/ more than one chain
 	def processLines(self):
 		""" Main function for processing files
 			Stores associated items atomDict and connectList
@@ -159,12 +162,17 @@ class chainClass:
 		"""
 		return(rmsd.rmsd(self.getPosArray(), chain_.getPosArray()))
 
+
+
+
+
 class pdbParser():
 	def __init__(self, fileName):
 		self.chainList=[]
 		self.fileName = fileName
 		self.process()
 
+	#TODO check if multiple chains can get processed
 	def process(self):
 		""" Main function for processing files
 			Stores associated items atomDict and connectList

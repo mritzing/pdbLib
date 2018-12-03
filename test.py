@@ -21,10 +21,16 @@ if __name__ == "__main__":
 	yPos = posArray[:,1]
 	zPos = posArray[:,2]
 
-
+	distances = []
 	for key in startAtoms:
-		distance = startAtoms[key].getDist(endAtoms[key])
-		if distance > maxDist:
-			maxDist = distance
-			maxKey = key
-	print(maxDist)
+		distances.append(startAtoms[key].getDist(endAtoms[key]))
+
+	rmsdArr = []
+
+	startConnects = startChain.getConnects()
+	endConnects = endChain.getConnects()
+
+	for inx, item in enumerate(startConnects):
+		rmsdArr.append(item.connectRMSD(endConnects[inx]))
+
+	print (rmsdArr)
