@@ -98,40 +98,38 @@ class chainClass:
 			lineArr = line.split()
 			if lineArr[0] == "HETATM":
 				self.atomDict[int(lineArr[1])] = atomClass(lineArr[1], lineArr[6], lineArr[7], lineArr[8], lineArr[10], lineArr[-1])
-                self.atomCount[lineArr[-1]] += 1
+				self.atomCount[lineArr[-1]] += 1
 			elif lineArr[0] == "CONECT":
 				self.connectDict = {};
 				for atomNum in lineArr[1:]:
 					connectDict[int(atomNum)] = self.atomDict[int(atomNum)]
 				self.connectList.append(connectClass(self.connectDict))
-	
+
 	def getMakeup(self):
-	""" Returns counts of elements in object
-	"""
 		return(self.atomCount)
 
 
 	def getMolMass(self):
-	""" Returns mass of elements in object
-	"""
-	totalMass = 0
-	for element in self.totals.keys():
-		elementMass = atomicMass.atomic_mass[element]*self.totals[element]
-		totalMass = totalMass + elementMass
-	return totalMass
+		""" Returns mass of elements in object
+		"""
+		totalMass = 0
+		for element in self.totals.keys():
+			elementMass = atomicMass.atomic_mass[element]*self.totals[element]
+			totalMass = totalMass + elementMass
+		return totalMass
 
 	#TODO decide what to store as an object
 	def getPosArray(self):
-	""" Returns numpy array of positions of atoms within object 
-			return ex: 
-			np.array([[46.900, -34.882, 16.524],
-					  [47.305, -39.387,  13.282],
-					  [49.426, -32.298, 10.930]])  
-	"""
-	arr = np.array()
-	for key, atom in enumerate(self.atomDict):
-		arr.append(atom.getLoc)
-	return arr
+		""" Returns numpy array of positions of atoms within object 
+				return ex: 
+				np.array([[46.900, -34.882, 16.524],
+						  [47.305, -39.387,  13.282],
+						  [49.426, -32.298, 10.930]])  
+		"""
+		arr = np.array()
+		for key, atom in enumerate(self.atomDict):
+			arr.append(atom.getLoc)
+		return arr
 
 	def getAtoms(self):
 		return atomDict
@@ -140,8 +138,8 @@ class chainClass:
 		return connectList
 
 	def chainRMSD(self, chain_):
-	""" Calculates RMSD using https://github.com/charnley/rmsd
-		param chain_ : chain being compared
-	"""
+		""" Calculates RMSD using https://github.com/charnley/rmsd
+			param chain_ : chain being compared
+		"""
 		return(rmsd.rmsd(self.getPosArray(), chain_.getPosArray()))
 
