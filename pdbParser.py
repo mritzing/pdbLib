@@ -2,6 +2,8 @@ import numpy as np
 from atomicMass import atomic_mass
 from collections import Counter
 import rmsd
+from itertools import groupby, chain
+import pdb
 """ Classes useful in parsing pdb files down to individual components """
 
 class atomClass: 
@@ -28,15 +30,17 @@ class atomClass:
 
 	def getAtomLoc(self):
 		""" Returns [x,y,z] list of atoms coordinates """
-		return [double(self.x), double(self.y), double(self.z)]
+		return [float(self.x), float(self.y), float(self.z)]
 
 	# https://stackoverflow.com/questions/20184992/finding-3d-distances-using-an-inbuilt-function-in-python
 	def getDist(self, atom_):
 		""" Returns distance between two points
 			param atom_ : atomClass object being compared
 		"""
-		squared_dist = np.sum(self.getAtomLoc()**2 + atom_.getAtomLoc()**2)
-		return np.sqrt(squared_dist)
+		p1 = np.array(self.getAtomLoc())
+		p2 = np.array(atom_.getAtomLoc())
+		dist = np.linalg.norm(p1- p2)
+		return (dist)
 
 	#https://stackoverflow.com/questions/35176451/python-code-to-calculate-angle-between-three-point-using-their-3d-coordinates
 	def getAngle(self, centerPoint, endPoint):
@@ -53,6 +57,7 @@ class atomClass:
 
 	def get_mol_mass(self):
 		return atomicMass.atomic_mass[self.ele]
+
 
 class connectClass: 
 	""" Class used to store information about conect lines in PDB file 
@@ -75,35 +80,43 @@ class connectClass:
 					  [47.305, -39.387,  13.282],
 					  [49.426, -32.298, 10.930]])  
 		"""
-		arr = np.array()
+		arr = np.array([])
 		for key, atom in enumerate(self.atomDict):
-			arr.append(atom.getLoc)
+			arr.append(atom.getAtomLoc())
 		return arr
+
+	def connectRMSD(self, connect_):
+		return(rmsd.rmsd(self.getPosArray(), connect_.getPosArray()))
 
 class chainClass: 
 	""" Chain stores atomDict and connectList of elements between END markers in file
 	"""
-	def __init__(self):
+	def __init__(self, text):
 		self.atomDict = {}
 		self.connectList = []
 		self.atomCount = Counter()
+		self.text = text
+		self.processLines()
+		self.arr = None
+
 
 	#TODO move down to actual parser class once I start tackling files w/ more than one chain
-	def process(self, fileName):
+	def processLines(self):
 		""" Main function for processing files
 			Stores associated items atomDict and connectList
 			Counts number of elements to atomCount object
 		"""
-		for line in open(files[0], 'r'):
+		for line in self.text.split('\n'):
 			lineArr = line.split()
-			if lineArr[0] == "HETATM":
-				self.atomDict[int(lineArr[1])] = atomClass(lineArr[1], lineArr[6], lineArr[7], lineArr[8], lineArr[10], lineArr[-1])
-				self.atomCount[lineArr[-1]] += 1
-			elif lineArr[0] == "CONECT":
-				self.connectDict = {};
-				for atomNum in lineArr[1:]:
-					connectDict[int(atomNum)] = self.atomDict[int(atomNum)]
-				self.connectList.append(connectClass(self.connectDict))
+			if lineArr != []:
+				if lineArr[0] == "HETATM":
+					self.atomDict[int(lineArr[1])] = atomClass(lineArr[1], lineArr[6], lineArr[7], lineArr[8], lineArr[10], lineArr[-1])
+					self.atomCount[lineArr[-1]] += 1
+				elif lineArr[0] == "CONECT":
+					connectDict = {};
+					for atomNum in lineArr[1:]:
+						connectDict[int(atomNum)] = self.atomDict[int(atomNum)]
+					self.connectList.append(connectClass(connectDict))
 
 	def getMakeup(self):
 		return(self.atomCount)
@@ -126,16 +139,19 @@ class chainClass:
 						  [47.305, -39.387,  13.282],
 						  [49.426, -32.298, 10.930]])  
 		"""
-		arr = np.array()
-		for key, atom in enumerate(self.atomDict):
-			arr.append(atom.getLoc)
-		return arr
+		if self.arr is None:
+			posList = [];
+			for key in self.atomDict:
+				posList.append((self.atomDict[key].getAtomLoc()))
+			self.arr = np.vstack(posList)
+		return self.arr
+
 
 	def getAtoms(self):
-		return atomDict
+		return self.atomDict
 
 	def getConnects(self):
-		return connectList
+		return self.connectList
 
 	def chainRMSD(self, chain_):
 		""" Calculates RMSD using https://github.com/charnley/rmsd
@@ -143,3 +159,34 @@ class chainClass:
 		"""
 		return(rmsd.rmsd(self.getPosArray(), chain_.getPosArray()))
 
+class pdbParser():
+	def __init__(self, fileName):
+		self.chainList=[]
+		self.fileName = fileName
+		self.process()
+
+	def process(self):
+		""" Main function for processing files
+			Stores associated items atomDict and connectList
+			Counts number of elements to atomCount object
+		"""
+		file = open(self.fileName,'r').read().split('END')
+		for textBlock in file:
+			self.chainList.append(chainClass(textBlock))
+
+	def getChains(self):
+		return(self.chainList)
+
+	def getFileName(self):
+		return(self.fileName)
+
+	# Mainly a testing function # 
+	def getTotalAtoms(self):
+		total = 0
+		for chain in self.chainList:
+			total = total + len(chain.getAtoms())
+		return total
+
+# testing function
+if __name__ == "__main__":
+	print("Testing")

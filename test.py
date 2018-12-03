@@ -1,21 +1,30 @@
-from pdbParser import atomClass, connectClass
+import pdbParser
 import glob
 import pdb
 
 
 if __name__ == "__main__":
-	atomDict = {}
-	connectList = []
 	files = glob.glob('*nspose1.pdb')
-	for line in open(files[0], 'r'):
-		lineArr = line.split()
-		if lineArr[0] == "HETATM":
-			atomDict[int(lineArr[1])] = atomClass(lineArr[1], lineArr[6], lineArr[7], lineArr[8], lineArr[10], lineArr[-1])
-		elif lineArr[0] == "CONECT":
-			connectDict = {};
-			for atomNum in lineArr[1:]:
-				connectDict[int(atomNum)] = atomDict[int(atomNum)]
-			connectList.append(connectClass(connectDict))
-	else :
-		print(connectList)
-		print("END")
+	print (files)
+	pdbs = []
+	for file in files:
+		pdbs.append(pdbParser.pdbParser(file))
+	#Find max distance
+	startChain = pdbs[0].getChains()[0]
+	startAtoms = startChain.getAtoms()
+	endChain = pdbs[-1].getChains()[0]
+	endAtoms = endChain.getAtoms()
+	maxDist = 0
+
+	posArray = endChain.getPosArray()
+	xPos = posArray[:,0]
+	yPos = posArray[:,1]
+	zPos = posArray[:,2]
+
+
+	for key in startAtoms:
+		distance = startAtoms[key].getDist(endAtoms[key])
+		if distance > maxDist:
+			maxDist = distance
+			maxKey = key
+	print(maxDist)
