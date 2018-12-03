@@ -1,5 +1,3 @@
-import glob
-import pdb
 import numpy as np
 
 
@@ -30,6 +28,27 @@ class atomClass:
 		""" Returns [x,y,z] list of atoms coordinates """
 		return [double(self.x), double(self.y), double(self.z)]
 
+	# https://stackoverflow.com/questions/20184992/finding-3d-distances-using-an-inbuilt-function-in-python
+	def getDist(self, atom_):
+		""" Returns distance between two points
+			param atom_ : atomClass object being compared
+		"""
+		squared_dist = np.sum(self.getAtomLoc()**2 + atom_.getAtomLoc()**2)
+		return np.sqrt(squared_dist)
+
+	#https://stackoverflow.com/questions/35176451/python-code-to-calculate-angle-between-three-point-using-their-3d-coordinates
+	def getAngle(self, centerPoint, endPoint):
+		"""
+			Returns angle between 3 points with one end being location of this object
+			param centerPoint : atomClass object of the center point
+			param endPoint : atomClass object of the second end point
+		"""
+		ba = self.getAtomLoc() - centerPoint.getAtomLoc()
+		bc = endPoint.getAtomLoc() - centerPoint.getAtomLoc()
+		
+		cosine_angle = np.dot(ba, bc) / (np.linalg.norm(ba) * np.linalg.norm(bc))
+		angle = np.arccos(cosine_angle)
+		return(np.degree(angle))
 
 
 class connectClass: 
@@ -38,7 +57,6 @@ class connectClass:
 		ex  : CONECT    4    3    5    7 
 		atomDict would contain key and associated atom items of values 4, 3, 5, 7 
 	"""
-
 	def __init__(self, atomDict):
 		"""Dictionary of atomClass objects"""
 		self.atomDict = atomDict
@@ -58,5 +76,4 @@ class connectClass:
 		for key, atom in enumerate(self.atomDict):
 			arr.append(atom.getLoc)
 		return arr
-
 
