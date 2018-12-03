@@ -16,17 +16,20 @@ class atomClass:
 		param temp: temperature
 		param ele: Element type (C , N , O, etc..)
 	"""
-	def __init__(self, idNum, x, y, z, temp ,ele):
+	def __init__(self, idNum, x, y, z, temp ,ele, charge):
 		self.idNum = idNum
 		self.x=  x
 		self.y = y
 		self.z = z
 		self.temp = temp
 		self.ele = ele
+		self.charge = charge
 
 	def getID(self):
 		return self.idNum
 
+	def getCharge(self):
+		return float(self.charge)
 
 	def getAtomLoc(self):
 		""" Returns [x,y,z] list of atoms coordinates """
@@ -113,7 +116,7 @@ class chainClass:
 			lineArr = line.split()
 			if lineArr != []:
 				if lineArr[0] == "HETATM":
-					self.atomDict[int(lineArr[1])] = atomClass(lineArr[1], lineArr[6], lineArr[7], lineArr[8], lineArr[10], lineArr[-1])
+					self.atomDict[int(lineArr[1])] = atomClass(lineArr[1], lineArr[6], lineArr[7], lineArr[8], lineArr[10], lineArr[-1], lineArr[-2])
 					self.atomCount[lineArr[-1]] += 1
 				elif lineArr[0] == "CONECT":
 					connectDict = {};
@@ -149,6 +152,11 @@ class chainClass:
 			self.arr = np.vstack(posList)
 		return self.arr
 
+	def getChargeArray(self):
+		cList = []
+		for key in self.atomDict:
+			cList.append(self.atomDict[key].getCharge())
+		return cList
 
 	def getAtoms(self):
 		return self.atomDict

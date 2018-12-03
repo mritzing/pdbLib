@@ -25,12 +25,16 @@ if __name__ == "__main__":
 	for key in startAtoms:
 		distances.append(startAtoms[key].getDist(endAtoms[key]))
 
-	rmsdArr = []
+#	rmsdArr = []
 
-	startConnects = startChain.getConnects()
-	endConnects = endChain.getConnects()
+#	startConnects = startChain.getConnects()
+#	endConnects = endChain.getConnects()
 
-	for inx, item in enumerate(startConnects):
-		rmsdArr.append(item.connectRMSD(endConnects[inx]))
+#	for inx, item in enumerate(startConnects):
+#		rmsdArr.append(item.connectRMSD(endConnects[inx]))
+	posStart = startChain.getPosArray()
+	xPosStart = posStart[:,0]
+	yPosStart = posStart[:,1]
+	zPosStart = posStart[:,2]
 
-	print (rmsdArr)
+	pdb.set_trace()
